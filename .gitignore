@@ -1,22 +1,64 @@
-# Compiled class file
 *.class
 
-# Log file
+# IDE support files
+.classpath
+.launch
+.project
+*.launch
+*.tmproj
+ivy*
+eclipse
+*.iml
+*.ipr
+*.iws
 *.log
+.idea/
+.settings/
 
-# BlueJ files
-*.ctxt
+# default HSQL database files for production mode
+prodDb.*
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# general HSQL database files
+*Db.properties
+*Db.script
 
-# Package Files #
-*.jar
+
+# logs
+stacktrace.log*
+ExportService.log*
+makalu.log*
+test/reports/
+logs/
+
+# project release file
 *.war
-*.ear
-*.zip
-*.tar.gz
-*.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+# plugin release file
+*.zip
+
+# older plugin install locations
+plugins/
+web-app/plugins/
+web-app/WEB-INF/classes/
+
+# "temporary" build files
+target/
+build/
+
+# other
+.temp
+
+#plugin xml
+plugin.xml
+_version.gsp
+
+#ExportService
+**/temp/*.*
+
+**/.asscache
+**/.gradle
+**/gradle/wrapper/**
+**/gradlew
+**/gradlew.bat
+grails-app/assets/vendor/npm/**
+gradle/**
