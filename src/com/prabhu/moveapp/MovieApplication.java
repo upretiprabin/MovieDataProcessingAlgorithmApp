@@ -47,6 +47,11 @@ public class MovieApplication extends JFrame {
 		movieObj = new Movie();
 	}
 
+
+	/**
+	 * Render Menu Bar with menus and menu items
+	 * Contains listener for all menus
+	 * */
 	public void makeMenus() {
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
@@ -57,12 +62,12 @@ public class MovieApplication extends JFrame {
 		JMenuItem menuItmRead = new JMenuItem("Read Data");
 		menuItmRead.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				boolean status = readMovieDataFromFile(movieObj,Movie.getInputFileName(),false);
-				boolean distReadStatus = readMovieDataFromFile(movieObj,Movie.getDistinfofilename(),true);
-				if(status) {
-					JOptionPane.showMessageDialog(contentPane, "Movie Data read successful.", "Read Movie Data", JOptionPane.INFORMATION_MESSAGE);
+				String status = readMovieDataFromFile(movieObj,Movie.getInputFileName(),false);
+				String distReadStatus = readMovieDataFromFile(movieObj,Movie.getDistinfofilename(),true);
+				if(!status.contains("Error") && !distReadStatus.contains("Error")) {
+					JOptionPane.showMessageDialog(contentPane, status, "Read Movie Data", JOptionPane.INFORMATION_MESSAGE);
 				}else {
-					JOptionPane.showMessageDialog(contentPane, "Error occurred while reading data!", "Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(contentPane, status, "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});
@@ -76,6 +81,8 @@ public class MovieApplication extends JFrame {
 					JOptionPane.showMessageDialog(contentPane, "Movie Data save successful.", "Save Movie Data", JOptionPane.INFORMATION_MESSAGE);
 				}else if(statusCode == -1){
 					JOptionPane.showMessageDialog(contentPane, "No data found!", "Error", JOptionPane.ERROR_MESSAGE);	
+				}else if(statusCode == -2){
+					JOptionPane.showMessageDialog(contentPane, "File not found!", "Error", JOptionPane.ERROR_MESSAGE);
 				}
 				else {
 					JOptionPane.showMessageDialog(contentPane, "Error occurred while saving data!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -160,7 +167,7 @@ public class MovieApplication extends JFrame {
 		JMenuItem menuItmDtls = new JMenuItem("Details");
 		menuItmDtls.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(movieObj.getMovieDataList()!=null && !movieObj.getMovieDataList().isEmpty()) {
+				if(isDataEmpty(movieObj.getDistributorDataList())) {
 					makeTable(getColumnNames(true),movieObj.getDistributorDataList());	
 				}else {
 					JOptionPane.showMessageDialog(contentPane, "No Records Found!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -175,7 +182,7 @@ public class MovieApplication extends JFrame {
 		JMenuItem menuItmExit = new JMenuItem("Exit");
 		menuItmExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int confirmStatus = JOptionPane.showConfirmDialog(contentPane, "Are you sure want to exit?");
+				int confirmStatus = JOptionPane.showConfirmDialog(contentPane, "Are you sure want to exit?","Exit",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
 				if(confirmStatus==0)
 					System.exit(JFrame.EXIT_ON_CLOSE);
 			}
@@ -183,6 +190,12 @@ public class MovieApplication extends JFrame {
 		mnExit.add(menuItmExit);
 	}
 
+
+	/**
+	 * checks whether data is loaded into object
+	 *
+	 * @return boolean status
+	 * **/
 	private boolean isDataEmpty(ArrayList<ArrayList<String>> data){
 		if(data!=null && !data.isEmpty()){
 			return  true;
@@ -190,17 +203,25 @@ public class MovieApplication extends JFrame {
 			return  false;
 		}
 	}
+
+	/**
+	 * render border after column and at the end
+	 * **/
 	private void displayBorder(){
 		for(int i = 0; i<120;i++){
 			textArea.append("=");
 		}
 	}
 
+
+	/**
+	 * render formatted data in text area
+	 * */
 	private void makeTable(String[] columnNames, ArrayList<ArrayList<String>> data){
 		//clear text editor
 		textArea.setText("");
 		for(int i = 0; i<columnNames.length;i++){
-			String output = String.format("%-25s",columnNames[i]);
+			String output = String.format("%-25s",columnNames[i]); //output is formatted with equal widths
 			textArea.append(output);
 		}
 
@@ -215,10 +236,14 @@ public class MovieApplication extends JFrame {
 			textArea.append("\n");
 		}
 		displayBorder();
-		textArea.setCaretPosition(0);
+		textArea.setCaretPosition(0); //brings cursor to initial position to render scroll bar at initial position
 
 	}
 
+
+	/**
+	 * Initializes the frame with textarea and other initial GUI Components
+	 * */
 	private void initContentPane() {
 		setTitle("Movie Data Processing Algorithm");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -242,9 +267,9 @@ public class MovieApplication extends JFrame {
 	 * data is stored in Collection Object.
 	 * @return      A String containing file process status.
 	 * */
-	private boolean readMovieDataFromFile(Movie movie, String fileName, boolean isDist){
+	private String readMovieDataFromFile(Movie movie, String fileName, boolean isDist){
 		ArrayList<ArrayList<String>> dataObj = new ArrayList<ArrayList<String>>();
-		boolean status;
+		String status;
 		File file = new File(fileName);
 		try{
 			BufferedReader bufferedReader = new BufferedReader(new FileReader(file.getAbsolutePath()));
@@ -261,12 +286,13 @@ public class MovieApplication extends JFrame {
 					movie.setMovieDataList(dataObj);
 				} else {
 					movie.setDistributorDataList(dataObj);
-					;
 				}
-			status = true;
+			status = "Movie Data read successful.";
+		}catch (FileNotFoundException e){
+			status = "Error : File Not Found!";
 		}catch (IOException e){
 			e.printStackTrace();
-			status = false;
+			status = "Error occurred while reading data!";
 		}
 		return status;
 	}
@@ -303,6 +329,8 @@ public class MovieApplication extends JFrame {
                 buffwriter.close();
                 System.out.println("New File "+Movie.getOutputFileName()+" created!");
                 status = 1;
+            }catch (FileNotFoundException e){
+                status = -2;
             }catch (IOException e){
                 e.printStackTrace();
                 status = 0;
@@ -312,10 +340,16 @@ public class MovieApplication extends JFrame {
         }
         return status;
     }
-    
+
+
+    /**
+	 * retrieve column names to render in table
+	 *
+	 * @return columnNames set in data Object
+	 * */
     private String[] getColumnNames(boolean isDist) {
-    	String[] columnNames = {"Movie Name","Lead Actor","Lead Actress","Theater Name","TicketPrice"};
-    	String[] distColumnNames = {"Distributor Name","Address","Phone Number"};
+    	String[] columnNames = movieObj.getMovieDataColumns();
+    	String[] distColumnNames = movieObj.getMovieDistributorsColumns();
     	if(isDist) {
     		return distColumnNames;
     	}
@@ -347,6 +381,9 @@ public class MovieApplication extends JFrame {
 
 	/**
 	 * implements quicksort algorithm on objects
+	 * uses divide and conquer rule to sort the elements
+	 * data is compared with a pivot element and divided into two halfs
+	 * uses recursion
 	 *
 	 * @return    An ArrayList of sorted sets by name.
 	 * */
@@ -382,6 +419,11 @@ public class MovieApplication extends JFrame {
 		return sorted;
 	}
 
+	/**
+	 * compares strings alphabetically
+	 * uses compareTo method
+	 * @return int value 0, >1 or <1
+	 * */
 	private int compareNames (String str1, String str2){
 		return str1.compareTo(str2);
 	}
